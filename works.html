@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>施工実績｜長谷川工業株式会社</title>
+  <meta name="description" content="長谷川工業株式会社の施工実績。キッチン・浴室・トイレ・エアコン・水回り修理など、伊東市を中心とした工事の記録をご紹介します。">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" href="favicon-192.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@400;500;600&family=Overpass:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/yakuhanjp@3.2.0/dist/css/yakuhanjp.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/works-page.css">
+</head>
+<body>
+
+  <div id="contents-wrap" class="fade-in">
+
+    <!-- HEADER（共通） -->
+    <header id="header">
+      <div class="header-logo">
+        <a href="index.html" class="header-logo-link" aria-label="長谷川工業株式会社 トップページへ">
+          <img src="logo/hasegawa_logo.png" alt="長谷川工業株式会社ロゴ">
+          <span class="header-company-name">長谷川工業株式会社</span>
+        </a>
+      </div>
+      <nav class="header-nav-pc is-subpage" aria-label="グローバルナビゲーション">
+        <ul>
+          <li><a href="index.html">ホーム</a></li>
+          <li><a href="index.html#about">私たちについて</a></li>
+          <li><a href="index.html#service">サービス内容</a></li>
+          <li><a href="index.html#works">施工事例</a></li>
+          <li class="active"><a href="works.html">施工実績</a></li>
+        </ul>
+      </nav>
+      <a href="index.html#contact" class="header-contact-btn" aria-label="お問い合わせ">
+        <span>お問い合わせ</span>
+      </a>
+      <button class="slide-menu-btn" id="menuBtn" aria-label="メニューを開く">
+        <div class="menu-trigger"><span></span><span></span><span></span></div>
+      </button>
+      <div class="slide-menu-nav" id="slideMenu" role="dialog" aria-modal="true">
+        <nav class="gnav">
+          <ul>
+            <li><a href="index.html"          class="menu-link">ホーム</a></li>
+            <li><a href="index.html#about"    class="menu-link">私たちについて</a></li>
+            <li><a href="index.html#service"  class="menu-link">サービス内容</a></li>
+            <li><a href="index.html#works"    class="menu-link">施工事例</a></li>
+            <li><a href="works.html"          class="menu-link">施工実績</a></li>
+            <li><a href="index.html#contact"  class="menu-link">お問い合わせ</a></li>
+          </ul>
+        </nav>
+        <div class="slide-tel-area">
+          <p class="slide-tel-area-num"><a href="tel:0557472851">0557-47-2851</a></p>
+          <p class="slide-tel-area-text">受付：平日 9:00〜18:00</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- ページヘッダー -->
+    <div class="page-hero">
+      <div class="page-hero-inner">
+        <p class="page-hero-en">WORKS</p>
+        <h1 class="page-hero-ttl">施工実績</h1>
+        <p class="page-hero-lead">日々の工事の記録をご紹介します</p>
+      </div>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <main class="works-page-main">
+      <div class="works-page-inner">
+
+        <!-- カテゴリフィルター -->
+        <div class="works-filter" role="group" aria-label="カテゴリで絞り込む">
+          <button class="filter-btn active" data-filter="all">すべて</button>
+          <button class="filter-btn" data-filter="kitchen">キッチン</button>
+          <button class="filter-btn" data-filter="bath">浴室</button>
+          <button class="filter-btn" data-filter="toilet">トイレ</button>
+          <button class="filter-btn" data-filter="aircon">エアコン</button>
+          <button class="filter-btn" data-filter="water">水回り</button>
+          <button class="filter-btn" data-filter="reform">リフォーム</button>
+        </div>
+
+        <!-- カード一覧は work-data.js + works-page.js が動的に生成します -->
+        <div class="works-card-grid" id="worksCardGrid">
+          <!-- JS により worksData から自動生成 -->
+        </div><!-- /works-card-grid -->
+
+      </div><!-- /works-page-inner -->
+    </main>
+
+    <!-- CTA -->
+    <section class="sub-cta">
+      <div class="sub-cta-inner">
+        <p class="sub-cta-ttl">お気軽にご相談ください</p>
+        <p class="sub-cta-lead">見積もり・現地調査は無料です。まずはお電話またはフォームからご連絡ください。</p>
+        <div class="sub-cta-btns">
+          <a href="tel:0557472851" class="cta-btn-tel-sm">
+            <span>📞 0557-47-2851</span>
+          </a>
+          <a href="index.html#contact" class="link-btn-std">お問い合わせフォームへ</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER（共通） -->
+    <footer id="footer">
+      <a href="#" class="page-top" aria-label="ページトップへ戻る">▲</a>
+      <div class="footer-inner">
+        <div class="footer-logo-area-wrap">
+          <div class="footer-logo-area">
+            <img src="logo/hasegawa_logo.png" alt="長谷川工業株式会社ロゴ" class="footer-logo">
+            <p class="footer-company-name">長谷川工業株式会社</p>
+          </div>
+          <address class="footer-address">
+            〒414-0001<br>
+            静岡県伊東市宇佐美1981番地の14<br>
+            TEL：<a href="tel:0557472851">0557-47-2851</a><br>
+            携帯：<a href="tel:09076106672">090-7610-6672</a><br>
+            受付：平日 9:00〜18:00
+          </address>
+        </div>
+        <nav class="footer-nav-area" aria-label="フッターナビゲーション">
+          <ul class="footer-nav-list">
+            <li><a href="index.html">ホーム</a></li>
+            <li><a href="index.html#about">私たちについて</a></li>
+            <li><a href="index.html#service">サービス内容</a></li>
+            <li><a href="index.html#works">施工事例</a></li>
+            <li><a href="works.html">施工実績</a></li>
+            <li><a href="index.html#contact">お問い合わせ</a></li>
+            <li><a href="privacy.html">プライバシーポリシー</a></li>
+          </ul>
+        </nav>
+      </div>
+      <p class="copyright">&copy; 2025 長谷川工業株式会社 All Rights Reserved.</p>
+    </footer>
+
+  </div><!-- /contents-wrap -->
+
+  <script src="js/work-data.js"></script>
+  <script src="js/works-page.js"></script>
+</body>
+</html>
