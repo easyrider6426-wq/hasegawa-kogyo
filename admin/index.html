@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>施工事例 管理画面｜長谷川工業株式会社</title>
+  <style>
+    /* ===== リセット・基本 ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      font-size: 14px;
+      color: #333;
+      background: #f5f6f8;
+      min-height: 100vh;
+    }
+    a { color: #2563eb; }
+
+    /* ===== ヘッダー ===== */
+    .admin-header {
+      background: #1e3a5f;
+      color: #fff;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    .admin-header h1 { font-size: 16px; font-weight: 700; letter-spacing: .04em; }
+    .admin-header .header-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .admin-header .site-link {
+      color: #93c5fd;
+      font-size: 13px;
+      text-decoration: none;
+    }
+    .admin-header .site-link:hover { color: #fff; }
+    .btn-settings {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-settings:hover { background: rgba(255,255,255,0.25); }
+
+    /* ===== GitHub接続バッジ ===== */
+    .github-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .github-badge.connected { background: #dcfce7; color: #166534; }
+    .github-badge.disconnected { background: #fee2e2; color: #991b1b; }
+
+    /* ===== レイアウト ===== */
+    .admin-wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px 60px; }
+
+    /* ===== セクションカード ===== */
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      border-left: 4px solid #1e3a5f;
+      padding-left: 10px;
+      margin-bottom: 18px;
+      color: #1e3a5f;
+    }
+
+    /* ===== 画像ガイド ===== */
+    .image-guide {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin-bottom: 24px;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    .image-guide strong { color: #1e3a5f; }
+    .image-guide ol { padding-left: 20px; margin-top: 8px; }
+    .image-guide code {
+      background: #dbeafe;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: Menlo, Monaco, monospace;
+      font-size: 12px;
+    }
+
+    /* ===== GitHub接続中ガイド ===== */
+    .github-guide {
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin-bottom: 24px;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    .github-guide strong { color: #166534; }
+
+    /* ===== フォーム ===== */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: 12px; font-weight: 600; color: #555; }
+    label .req { color: #e53e3e; margin-left: 2px; }
+    input[type="text"],
+    input[type="date"],
+    input[type="password"],
+    select,
+    textarea {
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 13px;
+      font-family: inherit;
+      color: #333;
+      background: #fff;
+      transition: border-color .2s;
+      width: 100%;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #1e3a5f;
+      box-shadow: 0 0 0 3px rgba(30,58,95,.1);
+    }
+    textarea { resize: vertical; min-height: 100px; }
+
+    /* ===== ボタン ===== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 20px;
+      border-radius: 6px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s, background .15s;
+    }
+    .btn:hover { opacity: .88; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-primary { background: #1e3a5f; color: #fff; }
+    .btn-success { background: #16a34a; color: #fff; }
+    .btn-warning { background: #d97706; color: #fff; }
+    .btn-danger  { background: #dc2626; color: #fff; }
+    .btn-ghost   { background: #e5e7eb; color: #333; }
+    .btn-github  { background: #24292f; color: #fff; }
+    .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+    .form-actions {
+      margin-top: 18px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    /* ===== 事例一覧テーブル ===== */
+    .works-table-wrap { overflow-x: auto; }
+    .works-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .works-table th, .works-table td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid #e5e7eb;
+      vertical-align: middle;
+    }
+    .works-table th {
+      background: #f1f5f9;
+      font-weight: 700;
+      white-space: nowrap;
+      color: #444;
+    }
+    .works-table tr:hover td { background: #f9fafb; }
+    .works-table .col-id    { width: 44px; text-align: center; }
+    .works-table .col-cat   { width: 88px; }
+    .works-table .col-date  { width: 108px; }
+    .works-table .col-title { }
+    .works-table .col-area  { width: 130px; }
+    .works-table .col-act   { width: 140px; white-space: nowrap; }
+
+    .cat-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .cat-kitchen { background: #d97706; }
+    .cat-bath    { background: #0891b2; }
+    .cat-toilet  { background: #7c3aed; }
+    .cat-aircon  { background: #2563eb; }
+    .cat-water   { background: #059669; }
+    .cat-reform  { background: #e11d48; }
+
+    .empty-state {
+      text-align: center;
+      color: #9ca3af;
+      padding: 32px;
+      font-size: 14px;
+    }
+
+    /* ===== 出力エリア ===== */
+    #outputSection { display: none; }
+    .output-area {
+      width: 100%;
+      min-height: 280px;
+      font-family: Menlo, Monaco, 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      background: #0f172a;
+      color: #e2e8f0;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 16px;
+      resize: vertical;
+    }
+    .output-hint {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 8px;
+      line-height: 1.7;
+    }
+
+    /* ===== モーダル共通 ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 12px;
+      padding: 28px 28px 24px;
+      width: min(700px, 95vw);
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1e3a5f;
+      margin-bottom: 20px;
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 18px;
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      color: #6b7280;
+      line-height: 1;
+    }
+    .modal-close:hover { color: #111; }
+    .modal-actions { margin-top: 20px; display: flex; gap: 10px; }
+
+    /* ===== セットアップモーダル ===== */
+    #setupModal .modal {
+      width: min(500px, 95vw);
+    }
+    .setup-desc {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+    .setup-desc a { color: #2563eb; }
+    .setup-steps {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 12px;
+      line-height: 1.9;
+      margin-bottom: 20px;
+      color: #444;
+    }
+    .setup-steps ol { padding-left: 18px; }
+    .setup-steps code {
+      background: #e2e8f0;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: Menlo, Monaco, monospace;
+    }
+    .token-input-wrap {
+      position: relative;
+      display: flex;
+      gap: 8px;
+    }
+    .token-input-wrap input {
+      flex: 1;
+    }
+
+    /* ===== メッセージ ===== */
+    .msg {
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 14px;
+      display: none;
+    }
+    .msg.success { background: #dcfce7; color: #166534; border: 1px solid #86efac; display: block; }
+    .msg.error   { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; display: block; }
+    .msg.info    { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; display: block; }
+
+    /* ===== ローディングスピナー ===== */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 640px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .form-group.full { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ヘッダー -->
+  <header class="admin-header">
+    <h1>🛠 施工事例 管理画面 — 長谷川工業株式会社</h1>
+    <div class="header-right">
+      <span id="headerGithubBadge"></span>
+      <button class="btn-settings" onclick="openSetupModal()">⚙ 設定</button>
+      <a href="../works.html" class="site-link" target="_blank">▶ 施工実績ページを開く</a>
+    </div>
+  </header>
+
+  <div class="admin-wrap">
+
+    <!-- ガイド（GitHub接続状態によって切り替え） -->
+    <div id="guideGithub" class="github-guide" style="display:none;">
+      <strong>✅ GitHub API 連携中</strong>
+      <p style="margin-top:6px;">「追加・更新・削除」操作後に <strong>GitHubへ保存</strong> ボタンを押すだけで、自動的にコミットが作成されます。Cloudflare Pages が検知して <strong>1〜2分でサイトに反映</strong> されます。</p>
+    </div>
+    <div id="guideManual" class="image-guide">
+      <strong>📷 画像の追加方法 / 手動保存モード</strong>
+      <ol>
+        <li>追加したい画像ファイルをパソコンの <code>画像素材/</code> フォルダへコピーします。</li>
+        <li>下の「新規追加」フォームの「画像ファイル名」欄に <code>画像素材/ファイル名.jpg</code> の形式で入力します。</li>
+        <li>事例を保存し、生成された <code>work-data.js</code> をダウンロードして元のファイルと置き換えます。</li>
+        <li><strong>Cloudflare Pages へ再デプロイ</strong>（<code>deploy.command</code> を実行）することでWebサイトに反映されます。</li>
+      </ol>
+      <p style="margin-top:8px;">⚙ <a href="#" onclick="openSetupModal(); return false;">GitHub APIを設定</a> すると、ボタン一つで自動デプロイできるようになります。</p>
+    </div>
+
+    <!-- 新規追加フォーム -->
+    <div class="card">
+      <p class="card-title">新規施工事例を追加</p>
+      <div id="formMsg" class="msg"></div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>タイトル <span class="req">*</span></label>
+          <input type="text" id="f-title" placeholder="例：節水型トイレへ交換">
+        </div>
+        <div class="form-group">
+          <label>カテゴリ <span class="req">*</span></label>
+          <select id="f-category">
+            <option value="">選択してください</option>
+            <option value="kitchen">キッチン</option>
+            <option value="bath">浴室</option>
+            <option value="toilet">トイレ</option>
+            <option value="aircon">エアコン</option>
+            <option value="water">水回り</option>
+            <option value="reform">リフォーム</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>施工エリア <span class="req">*</span></label>
+          <input type="text" id="f-area" placeholder="例：静岡県伊東市" value="静岡県伊東市">
+        </div>
+        <div class="form-group">
+          <label>施工日 <span class="req">*</span></label>
+          <input type="date" id="f-date">
+        </div>
+        <div class="form-group">
+          <label>工期</label>
+          <input type="text" id="f-period" placeholder="例：1日、3日間、約2週間">
+        </div>
+        <div class="form-group">
+          <label>画像ファイル名 <span class="req">*</span></label>
+          <input type="text" id="f-image" placeholder="例：画像素材/AdobeStock_123456.jpeg">
+        </div>
+        <div class="form-group full">
+          <label>概要（一覧カードに表示・80文字程度） <span class="req">*</span></label>
+          <textarea id="f-summary" rows="2" placeholder="一覧ページのカードに表示される短い説明文を入力してください。"></textarea>
+        </div>
+        <div class="form-group full">
+          <label>施工内容の詳細（詳細ページに表示）</label>
+          <textarea id="f-text" rows="5" placeholder="詳細ページに表示される詳しい説明文を入力してください。&#10;段落を分けるには空行を入れてください。"></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="addWork()">＋ 事例を追加</button>
+        <button class="btn btn-ghost" onclick="clearForm()">リセット</button>
+      </div>
+    </div>
+
+    <!-- 施工事例一覧 -->
+    <div class="card">
+      <p class="card-title">施工事例一覧（<span id="worksCount">0</span>件）</p>
+
+      <div class="works-table-wrap">
+        <table class="works-table">
+          <thead>
+            <tr>
+              <th class="col-id">ID</th>
+              <th class="col-cat">カテゴリ</th>
+              <th class="col-date">施工日</th>
+              <th class="col-title">タイトル</th>
+              <th class="col-area">エリア</th>
+              <th class="col-act">操作</th>
+            </tr>
+          </thead>
+          <tbody id="worksTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 保存セクション -->
+    <div class="card" id="outputSection">
+      <p class="card-title">📥 変更を保存する</p>
+
+      <!-- GitHub連携保存エリア -->
+      <div id="githubSaveArea" style="display:none;">
+        <p style="font-size:13px;color:#555;margin-bottom:14px;">
+          GitHub API 経由で <code>js/work-data.js</code> を更新します。<br>
+          保存後、Cloudflare Pages が自動的にビルドを開始し <strong>1〜2分でサイトに反映</strong> されます。
+        </p>
+        <div id="githubMsg" class="msg"></div>
+        <div class="form-actions">
+          <button class="btn btn-github" id="btnGithubSave" onclick="handleGithubSave()">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="flex-shrink:0"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            GitHubへ保存して自動デプロイ
+          </button>
+          <button class="btn btn-ghost" onclick="downloadFile()">⬇ ローカルにダウンロード（バックアップ）</button>
+        </div>
+      </div>
+
+      <!-- 手動保存エリア（トークン未設定時） -->
+      <div id="manualSaveArea">
+        <p style="font-size:13px;color:#555;margin-bottom:14px;">
+          以下のテキストをコピーして <code>js/work-data.js</code> を置き換えるか、
+          ダウンロードボタンでファイルを保存してください。<br>
+          保存後、<strong>deploy.command を実行</strong>してサイトに反映させてください。
+        </p>
+        <textarea class="output-area" id="outputCode" readonly></textarea>
+        <p class="output-hint" id="githubHint"></p>
+        <div class="form-actions">
+          <button class="btn btn-success" onclick="downloadFile()">⬇ work-data.js をダウンロード</button>
+          <button class="btn btn-ghost" onclick="copyOutput()">📋 クリップボードにコピー</button>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /admin-wrap -->
+
+  <!-- 編集モーダル -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+      <p class="modal-title">施工事例を編集</p>
+      <input type="hidden" id="e-id">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>タイトル <span class="req">*</span></label>
+          <input type="text" id="e-title">
+        </div>
+        <div class="form-group">
+          <label>カテゴリ <span class="req">*</span></label>
+          <select id="e-category">
+            <option value="kitchen">キッチン</option>
+            <option value="bath">浴室</option>
+            <option value="toilet">トイレ</option>
+            <option value="aircon">エアコン</option>
+            <option value="water">水回り</option>
+            <option value="reform">リフォーム</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>施工エリア <span class="req">*</span></label>
+          <input type="text" id="e-area">
+        </div>
+        <div class="form-group">
+          <label>施工日 <span class="req">*</span></label>
+          <input type="date" id="e-date">
+        </div>
+        <div class="form-group">
+          <label>工期</label>
+          <input type="text" id="e-period">
+        </div>
+        <div class="form-group">
+          <label>画像ファイル名 <span class="req">*</span></label>
+          <input type="text" id="e-image">
+        </div>
+        <div class="form-group full">
+          <label>概要（一覧カードに表示）</label>
+          <textarea id="e-summary" rows="2"></textarea>
+        </div>
+        <div class="form-group full">
+          <label>施工内容の詳細</label>
+          <textarea id="e-text" rows="5"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="saveEdit()">保存</button>
+        <button class="btn btn-ghost" onclick="closeEditModal()">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GitHub トークン設定モーダル -->
+  <div class="modal-overlay" id="setupModal">
+    <div class="modal">
+      <button class="modal-close" id="setupModalClose" onclick="closeSetupModal()">✕</button>
+      <p class="modal-title">⚙ GitHub API 設定</p>
+
+      <p class="setup-desc">
+        GitHub Personal Access Token（PAT）を設定すると、「GitHubへ保存」ボタン一つでサイトが自動更新されます。<br>
+        トークンはこのブラウザの LocalStorage にのみ保存され、外部に送信されません。
+      </p>
+
+      <div class="setup-steps">
+        <strong>トークンの取得方法：</strong>
+        <ol>
+          <li>GitHub → Settings → Developer settings → Personal access tokens → <strong>Tokens (classic)</strong></li>
+          <li>「Generate new token (classic)」をクリック</li>
+          <li>Note に任意の名前を入力し、<code>repo</code>（Full control of private repositories）にチェック</li>
+          <li>「Generate token」をクリックしてコピー</li>
+        </ol>
+      </div>
+
+      <div id="setupMsg" class="msg"></div>
+
+      <div class="form-group" style="margin-bottom:16px;">
+        <label>GitHub Personal Access Token</label>
+        <div class="token-input-wrap">
+          <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-github" onclick="saveToken()">保存して始める</button>
+        <button class="btn btn-ghost" id="setupCancelBtn" onclick="closeSetupModal()">キャンセル</button>
+        <button class="btn btn-danger btn-sm" id="clearTokenBtn" onclick="clearToken()" style="margin-left:auto; display:none;">トークンを削除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- work-data.js 読み込み -->
+  <script src="../js/work-data.js"></script>
+
+  <script>
+    /* ============================================================
+       admin/index.html — 管理画面スクリプト（GitHub API連携版）
+       ============================================================ */
+
+    /* ---- GitHub リポジトリ設定 ---- */
+    const GITHUB_OWNER = 'easyrider6426-wq';
+    const GITHUB_REPO  = 'hasegawa-kogyo';
+    const FILE_PATH    = 'js/work-data.js';
+    const BRANCH       = 'main';
+    const LS_TOKEN_KEY = 'hk_admin_github_token';
+
+    /* ---- カテゴリマスタ ---- */
+    const CATEGORIES = {
+      kitchen: 'キッチン',
+      bath:    '浴室',
+      toilet:  'トイレ',
+      aircon:  'エアコン',
+      water:   '水回り',
+      reform:  'リフォーム',
+    };
+
+    /* ---- 作業用データ（worksData をコピーして編集） ---- */
+    let data = (typeof worksData !== 'undefined') ? JSON.parse(JSON.stringify(worksData)) : [];
+
+    /* ============================================================
+       トークン管理
+       ============================================================ */
+    function getToken() {
+      return localStorage.getItem(LS_TOKEN_KEY) || '';
+    }
+
+    function hasToken() {
+      return !!getToken();
+    }
+
+    function saveToken() {
+      const token = document.getElementById('tokenInput').value.trim();
+      if (!token) {
+        showSetupMsg('トークンを入力してください。', 'error');
+        return;
+      }
+      if (!token.startsWith('ghp_') && !token.startsWith('github_pat_')) {
+        showSetupMsg('トークンの形式が正しくない可能性があります。「ghp_」または「github_pat_」で始まるトークンを確認してください。', 'error');
+        return;
+      }
+      localStorage.setItem(LS_TOKEN_KEY, token);
+      showSetupMsg('✅ トークンを保存しました！', 'success');
+      setTimeout(() => {
+        closeSetupModal();
+        updateGithubUI();
+      }, 1000);
+    }
+
+    function clearToken() {
+      if (!confirm('GitHubトークンを削除してよろしいですか？削除後は手動保存モードに戻ります。')) return;
+      localStorage.removeItem(LS_TOKEN_KEY);
+      document.getElementById('tokenInput').value = '';
+      closeSetupModal();
+      updateGithubUI();
+      showMsg('GitHubトークンを削除しました。手動保存モードに切り替わりました。', 'info');
+    }
+
+    function showSetupMsg(text, type = 'success') {
+      const el = document.getElementById('setupMsg');
+      el.textContent = text;
+      el.className = `msg ${type}`;
+    }
+
+    /* ============================================================
+       GitHub UI 切り替え
+       ============================================================ */
+    function updateGithubUI() {
+      const connected = hasToken();
+
+      /* ガイド表示切り替え */
+      document.getElementById('guideGithub').style.display = connected ? 'block' : 'none';
+      document.getElementById('guideManual').style.display = connected ? 'none' : 'block';
+
+      /* 保存エリア切り替え */
+      document.getElementById('githubSaveArea').style.display = connected ? 'block' : 'none';
+      document.getElementById('manualSaveArea').style.display = connected ? 'none' : 'block';
+
+      /* ヘッダーバッジ */
+      const badge = document.getElementById('headerGithubBadge');
+      if (connected) {
+        badge.innerHTML = '<span class="github-badge connected">● GitHub連携中</span>';
+      } else {
+        badge.innerHTML = '<span class="github-badge disconnected">● GitHub未設定</span>';
+      }
+    }
+
+    /* ============================================================
+       セットアップモーダル
+       ============================================================ */
+    function openSetupModal() {
+      const modal = document.getElementById('setupModal');
+      modal.classList.add('open');
+      document.getElementById('setupMsg').className = 'msg';
+
+      /* トークンが設定済みなら一部マスクして表示 */
+      const token = getToken();
+      if (token) {
+        document.getElementById('tokenInput').value = token;
+        document.getElementById('clearTokenBtn').style.display = 'inline-flex';
+        document.getElementById('setupModalClose').style.display = 'block';
+        document.getElementById('setupCancelBtn').style.display = 'inline-flex';
+      } else {
+        document.getElementById('tokenInput').value = '';
+        document.getElementById('clearTokenBtn').style.display = 'none';
+        /* 初回セットアップ時はトークンなしなら閉じるボタンを状況に応じて表示 */
+        document.getElementById('setupModalClose').style.display = hasToken() ? 'block' : 'none';
+        document.getElementById('setupCancelBtn').style.display = hasToken() ? 'inline-flex' : 'none';
+      }
+    }
+
+    function closeSetupModal() {
+      if (!hasToken()) {
+        /* トークン未設定のまま閉じようとした場合は閉じない */
+        return;
+      }
+      document.getElementById('setupModal').classList.remove('open');
+    }
+
+    document.getElementById('setupModal').addEventListener('click', function(e) {
+      if (e.target === this) closeSetupModal();
+    });
+
+    /* ============================================================
+       ユーティリティ
+       ============================================================ */
+    function esc(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function dateLabel(dateStr) {
+      if (!dateStr) return '';
+      const [y, m, d] = dateStr.split('-');
+      return `${y}年${parseInt(m)}月${parseInt(d)}日`;
+    }
+
+    function nextId() {
+      return data.length > 0 ? Math.max(...data.map(w => w.id)) + 1 : 1;
+    }
+
+    function showMsg(text, type = 'success') {
+      const el = document.getElementById('formMsg');
+      el.textContent = text;
+      el.className = `msg ${type}`;
+      setTimeout(() => { el.className = 'msg'; }, 6000);
+    }
+
+    function showGithubMsg(text, type = 'success') {
+      const el = document.getElementById('githubMsg');
+      el.textContent = text;
+      el.className = `msg ${type}`;
+    }
+
+    /* ============================================================
+       テーブル描画
+       ============================================================ */
+    function renderTable() {
+      const tbody = document.getElementById('worksTableBody');
+      document.getElementById('worksCount').textContent = data.length;
+
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-state">事例がありません。上のフォームから追加してください。</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.map(work => `
+        <tr>
+          <td class="col-id">${work.id}</td>
+          <td class="col-cat">
+            <span class="cat-badge cat-${esc(work.category)}">${esc(work.categoryLabel)}</span>
+          </td>
+          <td class="col-date">${esc(work.dateLabel || '')}</td>
+          <td class="col-title">${esc(work.title)}</td>
+          <td class="col-area">${esc(work.area)}</td>
+          <td class="col-act">
+            <button class="btn btn-warning btn-sm" onclick="openEditModal(${work.id})">編集</button>
+            <button class="btn btn-danger  btn-sm" onclick="deleteWork(${work.id})">削除</button>
+          </td>
+        </tr>`).join('');
+
+      refreshOutput();
+    }
+
+    /* ============================================================
+       新規追加
+       ============================================================ */
+    function addWork() {
+      const title    = document.getElementById('f-title').value.trim();
+      const category = document.getElementById('f-category').value;
+      const area     = document.getElementById('f-area').value.trim();
+      const date     = document.getElementById('f-date').value;
+      const period   = document.getElementById('f-period').value.trim();
+      const image    = document.getElementById('f-image').value.trim();
+      const summary  = document.getElementById('f-summary').value.trim();
+      const text     = document.getElementById('f-text').value.trim();
+
+      if (!title)    { showMsg('タイトルを入力してください。', 'error'); return; }
+      if (!category) { showMsg('カテゴリを選択してください。', 'error'); return; }
+      if (!area)     { showMsg('エリアを入力してください。', 'error'); return; }
+      if (!date)     { showMsg('施工日を選択してください。', 'error'); return; }
+      if (!image)    { showMsg('画像ファイル名を入力してください。', 'error'); return; }
+      if (!summary)  { showMsg('概要を入力してください。', 'error'); return; }
+
+      const newWork = {
+        id:            nextId(),
+        category,
+        categoryLabel: CATEGORIES[category],
+        date,
+        dateLabel:     dateLabel(date),
+        title,
+        summary,
+        text:          text || summary,
+        image,
+        area,
+        period:        period || '',
+        price:         'お見積もりにてご確認ください',
+      };
+
+      data.unshift(newWork);
+      clearForm();
+      renderTable();
+
+      if (hasToken()) {
+        showMsg(`「${title}」を追加しました。下の「GitHubへ保存」ボタンで反映してください。`);
+      } else {
+        showMsg(`「${title}」を追加しました。下の「work-data.js をダウンロード」ボタンで保存してください。`);
+      }
+
+      document.getElementById('outputSection').style.display = 'block';
+      document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function clearForm() {
+      ['f-title','f-category','f-area','f-period','f-image','f-summary','f-text'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el.tagName === 'SELECT') el.value = '';
+        else el.value = '';
+      });
+      document.getElementById('f-area').value = '静岡県伊東市';
+      document.getElementById('f-date').value = '';
+    }
+
+    /* ============================================================
+       削除
+       ============================================================ */
+    function deleteWork(id) {
+      const work = data.find(w => w.id === id);
+      if (!work) return;
+      if (!confirm(`「${work.title}」を削除してよろしいですか？`)) return;
+      data = data.filter(w => w.id !== id);
+      renderTable();
+
+      if (hasToken()) {
+        showMsg(`「${work.title}」を削除しました。下の「GitHubへ保存」ボタンで反映してください。`);
+      } else {
+        showMsg(`「${work.title}」を削除しました。下の「work-data.js をダウンロード」ボタンで保存してください。`);
+      }
+
+      document.getElementById('outputSection').style.display = 'block';
+    }
+
+    /* ============================================================
+       編集モーダル
+       ============================================================ */
+    function openEditModal(id) {
+      const work = data.find(w => w.id === id);
+      if (!work) return;
+      document.getElementById('e-id').value       = work.id;
+      document.getElementById('e-title').value    = work.title;
+      document.getElementById('e-category').value = work.category;
+      document.getElementById('e-area').value     = work.area;
+      document.getElementById('e-date').value     = work.date;
+      document.getElementById('e-period').value   = work.period || '';
+      document.getElementById('e-image').value    = work.image;
+      document.getElementById('e-summary').value  = work.summary || '';
+      document.getElementById('e-text').value     = work.text || '';
+      document.getElementById('editModal').classList.add('open');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.remove('open');
+    }
+
+    document.getElementById('editModal').addEventListener('click', function(e) {
+      if (e.target === this) closeEditModal();
+    });
+
+    function saveEdit() {
+      const id       = parseInt(document.getElementById('e-id').value);
+      const title    = document.getElementById('e-title').value.trim();
+      const category = document.getElementById('e-category').value;
+      const area     = document.getElementById('e-area').value.trim();
+      const date     = document.getElementById('e-date').value;
+      const period   = document.getElementById('e-period').value.trim();
+      const image    = document.getElementById('e-image').value.trim();
+      const summary  = document.getElementById('e-summary').value.trim();
+      const text     = document.getElementById('e-text').value.trim();
+
+      if (!title || !category || !area || !date || !image) {
+        alert('必須項目を入力してください。');
+        return;
+      }
+
+      const idx = data.findIndex(w => w.id === id);
+      if (idx === -1) return;
+      data[idx] = {
+        ...data[idx],
+        category,
+        categoryLabel: CATEGORIES[category],
+        date,
+        dateLabel:     dateLabel(date),
+        title,
+        summary,
+        text: text || summary,
+        image,
+        area,
+        period,
+      };
+
+      closeEditModal();
+      renderTable();
+
+      if (hasToken()) {
+        showMsg(`「${title}」を更新しました。下の「GitHubへ保存」ボタンで反映してください。`);
+      } else {
+        showMsg(`「${title}」を更新しました。下の「work-data.js をダウンロード」ボタンで保存してください。`);
+      }
+
+      document.getElementById('outputSection').style.display = 'block';
+      document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    /* ============================================================
+       work-data.js 生成
+       ============================================================ */
+    function generateWorkDataJs(works) {
+      const lines = [
+        '/* ============================================================',
+        '   work-data.js — 施工事例データ',
+        '   新しい事例を追加するには、この配列の先頭に新しいオブジェクトを追加してください。',
+        '   ============================================================ */',
+        'const worksData = [',
+      ];
+
+      works.forEach((work, i) => {
+        const isLast = i === works.length - 1;
+        const textEscaped = (work.text || '').replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\${/g, '\\${');
+        lines.push('  {');
+        lines.push(`    id: ${work.id},`);
+        lines.push(`    category: '${work.category}',`);
+        lines.push(`    categoryLabel: '${work.categoryLabel}',`);
+        lines.push(`    date: '${work.date}',`);
+        lines.push(`    dateLabel: '${work.dateLabel}',`);
+        lines.push(`    title: '${work.title.replace(/'/g, "\\'")}',`);
+        lines.push(`    summary: '${(work.summary || '').replace(/'/g, "\\'")}',`);
+        lines.push(`    text: '${textEscaped.replace(/'/g, "\\'").replace(/\n/g, '\\n')}',`);
+        lines.push(`    image: '${work.image}',`);
+        lines.push(`    area: '${work.area}',`);
+        lines.push(`    period: '${(work.period || '').replace(/'/g, "\\'")}',`);
+        lines.push(`    price: '${(work.price || 'お見積もりにてご確認ください').replace(/'/g, "\\'")}'`);
+        lines.push(isLast ? '  }' : '  },');
+      });
+
+      lines.push('];');
+      return lines.join('\n');
+    }
+
+    /* ============================================================
+       GitHub API 連携
+       ============================================================ */
+    async function saveViaGitHubAPI(works) {
+      const token = getToken();
+      if (!token) {
+        throw new Error('GitHubトークンが設定されていません。');
+      }
+
+      const content = generateWorkDataJs(works);
+      const encoded = btoa(unescape(encodeURIComponent(content)));
+      const apiUrl  = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${FILE_PATH}`;
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type': 'application/json',
+      };
+
+      /* 1. 現在の SHA を取得 */
+      let sha = '';
+      const getRes = await fetch(`${apiUrl}?ref=${BRANCH}`, { headers });
+
+      if (getRes.status === 401) {
+        throw new Error('トークンが無効または期限切れです。⚙ 設定ボタンからトークンを再設定してください。');
+      }
+      if (getRes.status === 403) {
+        throw new Error('アクセス権限がありません。トークンに repo スコープが付与されているか確認してください。');
+      }
+      if (getRes.status === 404) {
+        throw new Error(`ファイルが見つかりません（${FILE_PATH}）。リポジトリ名やファイルパスを確認してください。`);
+      }
+      if (!getRes.ok) {
+        throw new Error(`ファイル情報の取得に失敗しました（HTTP ${getRes.status}）。`);
+      }
+
+      const getJson = await getRes.json();
+      sha = getJson.sha;
+
+      /* 2. ファイルを更新（PUT） */
+      const putRes = await fetch(apiUrl, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          message: '施工事例を更新',
+          content: encoded,
+          sha,
+          branch: BRANCH,
+        }),
+      });
+
+      if (putRes.status === 401) {
+        throw new Error('トークンが無効または期限切れです。⚙ 設定ボタンからトークンを再設定してください。');
+      }
+      if (putRes.status === 403) {
+        throw new Error('書き込み権限がありません。トークンの権限を確認してください。');
+      }
+      if (putRes.status === 409) {
+        throw new Error('競合が発生しました。ページを再読み込みしてから再度お試しください。');
+      }
+      if (!putRes.ok) {
+        const errJson = await putRes.json().catch(() => ({}));
+        throw new Error(`GitHubへの保存に失敗しました（HTTP ${putRes.status}）。${errJson.message || ''}`);
+      }
+
+      return await putRes.json();
+    }
+
+    /* ============================================================
+       GitHubへ保存ボタンのハンドラ
+       ============================================================ */
+    async function handleGithubSave() {
+      const btn = document.getElementById('btnGithubSave');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> 保存中...';
+      showGithubMsg('GitHubにコミットを送信しています...', 'info');
+
+      try {
+        await saveViaGitHubAPI(data);
+        showGithubMsg('✅ GitHubに保存しました。1〜2分でサイトに反映されます。', 'success');
+      } catch (err) {
+        showGithubMsg(`❌ エラー: ${err.message}`, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="flex-shrink:0"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> GitHubへ保存して自動デプロイ`;
+      }
+    }
+
+    /* ============================================================
+       出力エリア更新
+       ============================================================ */
+    function refreshOutput() {
+      const code = generateWorkDataJs(data);
+      const el = document.getElementById('outputCode');
+      if (el) el.value = code;
+    }
+
+    /* ============================================================
+       ダウンロード / コピー
+       ============================================================ */
+    function downloadFile() {
+      const content = generateWorkDataJs(data);
+      const blob    = new Blob([content], { type: 'text/javascript;charset=utf-8' });
+      const url     = URL.createObjectURL(blob);
+      const a       = document.createElement('a');
+      a.href        = url;
+      a.download    = 'work-data.js';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function copyOutput() {
+      const el = document.getElementById('outputCode');
+      el.select();
+      navigator.clipboard.writeText(el.value).then(() => {
+        showMsg('クリップボードにコピーしました。');
+      }).catch(() => {
+        document.execCommand('copy');
+        showMsg('クリップボードにコピーしました。');
+      });
+    }
+
+    /* ============================================================
+       初期化
+       ============================================================ */
+    (function init() {
+      /* デフォルトで本日の日付をセット */
+      const today = new Date();
+      const yy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      document.getElementById('f-date').value = `${yy}-${mm}-${dd}`;
+
+      /* テーブル描画 */
+      renderTable();
+      refreshOutput();
+
+      /* GitHub UI を初期化 */
+      updateGithubUI();
+
+      /* トークン未設定なら自動でセットアップモーダルを開く */
+      if (!hasToken()) {
+        /* モーダルの閉じるボタンとキャンセルを非表示にして必須セットアップにする */
+        document.getElementById('setupModalClose').style.display = 'none';
+        document.getElementById('setupCancelBtn').style.display = 'none';
+        document.getElementById('clearTokenBtn').style.display = 'none';
+        document.getElementById('setupModal').classList.add('open');
+      }
+    })();
+  </script>
+
+</body>
+</html>
