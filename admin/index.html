@@ -378,8 +378,8 @@
 
     <!-- ガイド（GitHub接続状態によって切り替え） -->
     <div id="guideGithub" class="github-guide" style="display:none;">
-      <strong>✅ GitHub API 連携中</strong>
-      <p style="margin-top:6px;">「追加・更新・削除」操作後に <strong>GitHubへ保存</strong> ボタンを押すだけで、自動的にコミットが作成されます。Cloudflare Pages が検知して <strong>1〜2分でサイトに反映</strong> されます。</p>
+      <strong id="guideGithubTitle">✅ GitHub API 連携中</strong>
+      <p id="guideGithubDesc" style="margin-top:6px;">「追加・更新・削除」操作後に <strong>GitHubへ保存</strong> ボタンを押すだけで、自動的にコミットが作成されます。Cloudflare Pages が検知して <strong>1〜2分でサイトに反映</strong> されます。</p>
     </div>
     <div id="guideManual" class="image-guide">
       <strong>📷 画像の追加方法 / 手動保存モード</strong>
@@ -560,19 +560,20 @@
     </div>
   </div>
 
-  <!-- GitHub トークン設定モーダル -->
+  <!-- GitHub / Cloudflare トークン設定モーダル -->
   <div class="modal-overlay" id="setupModal">
     <div class="modal">
       <button class="modal-close" id="setupModalClose" onclick="closeSetupModal()">✕</button>
-      <p class="modal-title">⚙ GitHub API 設定</p>
+      <p class="modal-title">⚙ GitHub API / Cloudflare 設定</p>
 
       <p class="setup-desc">
-        GitHub Personal Access Token（PAT）を設定すると、「GitHubへ保存」ボタン一つでサイトが自動更新されます。<br>
+        GitHub Personal Access Token（PAT）を設定すると、「GitHubへ保存」ボタン一つでコミットが作成されます。<br>
+        さらに Cloudflare API トークンも設定すると、<strong>Cloudflare Pages へ直接デプロイ</strong>され即時反映されます。<br>
         トークンはこのブラウザの LocalStorage にのみ保存され、外部に送信されません。
       </p>
 
       <div class="setup-steps">
-        <strong>トークンの取得方法：</strong>
+        <strong>GitHub トークンの取得方法：</strong>
         <ol>
           <li>GitHub → Settings → Developer settings → Personal access tokens → <strong>Tokens (classic)</strong></li>
           <li>「Generate new token (classic)」をクリック</li>
@@ -584,10 +585,18 @@
       <div id="setupMsg" class="msg"></div>
 
       <div class="form-group" style="margin-bottom:16px;">
-        <label>GitHub Personal Access Token</label>
+        <label>GitHub Personal Access Token <span class="req">*</span></label>
         <div class="token-input-wrap">
           <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
         </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:16px;">
+        <label>Cloudflare APIトークン（任意）</label>
+        <div class="token-input-wrap">
+          <input type="password" id="cfTokenInput" placeholder="cfut_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+        </div>
+        <span style="font-size:11px;color:#6b7280;margin-top:4px;">deploy.commandの中に記載のトークン（cfut_で始まる）を入力</span>
       </div>
 
       <div class="modal-actions">
@@ -611,7 +620,44 @@
     const GITHUB_REPO  = 'hasegawa-kogyo';
     const FILE_PATH    = 'js/work-data.js';
     const BRANCH       = 'main';
-    const LS_TOKEN_KEY = 'hk_admin_github_token';
+    const LS_TOKEN_KEY    = 'hk_admin_github_token';
+    const LS_CF_TOKEN_KEY = 'cf_api_token';
+
+    /* ---- Cloudflare Pages 設定 ---- */
+    const CF_ACCOUNT_ID = 'b0e8d6c0e3119557a176dc2b8d32b8c8';
+    const CF_PROJECT    = 'hasegawa-kogyo';
+    const CF_API_URL    = `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PROJECT}/deployments`;
+
+    /* ---- ベースマニフェスト（work-data.js・manifest.json を除く） ---- */
+    const BASE_MANIFEST = {
+      "/favicon-192.png": "qs+QVbJrbrGuF6EtCvxLK+EfUBR+jjdeEOm8eUoX/xk=",
+      "/favicon.ico": "7lFTpg7LGnNdJikcZkYtx9sAB452qG5dtgPwuJgpy/Y=",
+      "/index.html": "EI7a3ELnRpdagxFdHu1z/zN9/yKipgnzIsW4diUvTVQ=",
+      "/apple-touch-icon.png": "PqgyoXBgbUiHFRPF2q7VaaqGk6wRGxuKIBLPnO8RPNM=",
+      "/work-detail.html": "vgfyYNOHA57HJDzXgu6S4Rrb35mxJnwthF5Mm96o8es=",
+      "/works.html": "0avvtvn2CIk8ThqyteorOHdWOZxAYUJKCwsVGIJ81i0=",
+      "/privacy.html": "Rb26EUhulaIxqDiloUnrtcwLWq7dcGPJBJOSvxiof+g=",
+      "/css/reset.css": "iuliVVhkMvc6CT0K/ub8X8G9dNqFfHCs1dQQ3aIQe04=",
+      "/css/common.css": "SXvbUyKLCM9UEQEr9+SmPLQ8SDRf0EHE6rEK4aKAfHM=",
+      "/css/style.css": "F1FjsZ3tUc+1SVu9Zi/X74Am179GheQV2YCXNNeE1/Y=",
+      "/css/works-page.css": "G8Zh783h2uYC9GSPOUuaElIMBvnJG6YK/5nS1i7XLQ8=",
+      "/css/work-detail.css": "Gnm8LHjkvGqMplO9rtlS6FFQOmWNpeh4SeW2VEga/CU=",
+      "/js/work-detail.js": "ieDSyeH94oLcTR7QipFZaMRU9EfvDxZhhc0dk0FxFJU=",
+      "/js/works-page.js": "YKekbhDR7g61FTDE6ugNN4L0R5+MjKFXh1PuG3yZBbU=",
+      "/js/main.js": "AD4CJ25RHaAQInBME/f6x4i/tiMzAkE5hsVjTIAfWIo=",
+      "/admin/index.html": "UFXGQZuCz+vMaHJ9Z2aghikrzzKPJCbzUE8aU1RmxLw=",
+      "/logo/hasegawa_logo.png": "ovirGIp2I+sanPQOflxHBimLinNkEvBN+56x6rDLpzQ=",
+      "/画像素材/hasegawa.jpeg": "rwQC6+V5McmRCsEG77crbXlNpgvKfHsPOCjjpxq0OfM=",
+      "/画像素材/25368595_m.jpg": "iGmM88gbe4v01wPD9MSDnXj/+otUkn7V+8DeFnHuw+E=",
+      "/画像素材/AdobeStock_120316830.jpeg": "IhOE4LLoz988y/6kGdVtDSQU5xyv+6y2L41lvxvXRC4=",
+      "/画像素材/AdobeStock_217135141.jpeg": "Cbp5WdNpF1YLV4aCtnidnmZcEGat7zUlcZwey5f+DN4=",
+      "/画像素材/AdobeStock_241407703.jpeg": "taV+BfI2SWyvC5QV03ntKxBLLB4sjsqsJYTEbD9jFos=",
+      "/画像素材/AdobeStock_284530190.jpeg": "LvHjHUT5M8sEObpskpeC7eu319DzkS08mkrYsUOvEQ8=",
+      "/画像素材/AdobeStock_481107446.jpeg": "AU+iSX1/0LkPjR6z1LKIoyLmKtvvVaAQP/57ZdE5Y4E=",
+      "/画像素材/AdobeStock_481376400.jpeg": "3yxenIIshvs7BYhCn7sn3mBAtLzCD370LClOrjhE2Oo=",
+      "/画像素材/AdobeStock_719763154.jpeg": "yf92i4KJmpgIyPAFp3OOa/EOT5w0dQnRySnun96njis=",
+      "/画像素材/AdobeStock_1237388757.jpeg": "uCGHhAKwvXoiuGFbm9mkRV7QqkLK63MdVT77Kgbq1co="
+    };
 
     /* ---- カテゴリマスタ ---- */
     const CATEGORIES = {
@@ -637,17 +683,36 @@
       return !!getToken();
     }
 
+    function getCFToken() {
+      return localStorage.getItem(LS_CF_TOKEN_KEY) || '';
+    }
+
+    function hasCFToken() {
+      return !!getCFToken();
+    }
+
     function saveToken() {
-      const token = document.getElementById('tokenInput').value.trim();
+      const token   = document.getElementById('tokenInput').value.trim();
+      const cfToken = document.getElementById('cfTokenInput').value.trim();
+
       if (!token) {
-        showSetupMsg('トークンを入力してください。', 'error');
+        showSetupMsg('GitHubトークンを入力してください。', 'error');
         return;
       }
       if (!token.startsWith('ghp_') && !token.startsWith('github_pat_')) {
-        showSetupMsg('トークンの形式が正しくない可能性があります。「ghp_」または「github_pat_」で始まるトークンを確認してください。', 'error');
+        showSetupMsg('GitHubトークンの形式が正しくない可能性があります。「ghp_」または「github_pat_」で始まるトークンを確認してください。', 'error');
         return;
       }
       localStorage.setItem(LS_TOKEN_KEY, token);
+
+      if (cfToken) {
+        if (!cfToken.startsWith('cfut_') && !cfToken.startsWith('cf_')) {
+          showSetupMsg('CloudflareトークンはcfAで始まる形式を確認してください（省略可）。', 'error');
+          return;
+        }
+        localStorage.setItem(LS_CF_TOKEN_KEY, cfToken);
+      }
+
       showSetupMsg('✅ トークンを保存しました！', 'success');
       setTimeout(() => {
         closeSetupModal();
@@ -656,12 +721,14 @@
     }
 
     function clearToken() {
-      if (!confirm('GitHubトークンを削除してよろしいですか？削除後は手動保存モードに戻ります。')) return;
+      if (!confirm('GitHubトークンおよびCloudflareトークンを削除してよろしいですか？削除後は手動保存モードに戻ります。')) return;
       localStorage.removeItem(LS_TOKEN_KEY);
+      localStorage.removeItem(LS_CF_TOKEN_KEY);
       document.getElementById('tokenInput').value = '';
+      document.getElementById('cfTokenInput').value = '';
       closeSetupModal();
       updateGithubUI();
-      showMsg('GitHubトークンを削除しました。手動保存モードに切り替わりました。', 'info');
+      showMsg('トークンを削除しました。手動保存モードに切り替わりました。', 'info');
     }
 
     function showSetupMsg(text, type = 'success') {
@@ -674,22 +741,57 @@
        GitHub UI 切り替え
        ============================================================ */
     function updateGithubUI() {
-      const connected = hasToken();
+      const connected   = hasToken();
+      const cfConnected = hasCFToken();
 
       /* ガイド表示切り替え */
       document.getElementById('guideGithub').style.display = connected ? 'block' : 'none';
       document.getElementById('guideManual').style.display = connected ? 'none' : 'block';
 
+      /* ガイドメッセージ更新 */
+      if (connected) {
+        if (cfConnected) {
+          document.getElementById('guideGithubTitle').textContent = '✅ GitHub API + Cloudflare Pages 連携中';
+          document.getElementById('guideGithubDesc').innerHTML = '「追加・更新・削除」操作後に <strong>GitHubへ保存 & Cloudflareデプロイ</strong> ボタンを押すだけで、GitHubコミットとCloudflare Pagesへの直接デプロイが実行され、<strong>即時サイトに反映</strong> されます。';
+        } else {
+          document.getElementById('guideGithubTitle').textContent = '✅ GitHub API 連携中';
+          document.getElementById('guideGithubDesc').innerHTML = '「追加・更新・削除」操作後に <strong>GitHubへ保存</strong> ボタンを押すだけで、自動的にコミットが作成されます。Cloudflare Pages が検知して <strong>1〜2分でサイトに反映</strong> されます。';
+        }
+      }
+
       /* 保存エリア切り替え */
       document.getElementById('githubSaveArea').style.display = connected ? 'block' : 'none';
       document.getElementById('manualSaveArea').style.display = connected ? 'none' : 'block';
 
+      /* 保存エリアの説明文を更新 */
+      if (connected) {
+        const saveDesc = document.querySelector('#githubSaveArea p');
+        if (saveDesc) {
+          if (cfConnected) {
+            saveDesc.innerHTML = 'GitHub API 経由で <code>js/work-data.js</code> をコミットし、続けて Cloudflare Pages API に直接デプロイします。<br>保存後、<strong>即時サイトに反映</strong> されます。';
+          } else {
+            saveDesc.innerHTML = 'GitHub API 経由で <code>js/work-data.js</code> を更新します。<br>保存後、Cloudflare Pages が自動的にビルドを開始し <strong>1〜2分でサイトに反映</strong> されます。';
+          }
+        }
+      }
+
       /* ヘッダーバッジ */
       const badge = document.getElementById('headerGithubBadge');
-      if (connected) {
+      if (connected && cfConnected) {
+        badge.innerHTML = '<span class="github-badge connected">● GitHub + CF連携中</span>';
+      } else if (connected) {
         badge.innerHTML = '<span class="github-badge connected">● GitHub連携中</span>';
       } else {
         badge.innerHTML = '<span class="github-badge disconnected">● GitHub未設定</span>';
+      }
+
+      /* 保存ボタンのラベル更新 */
+      const btn = document.getElementById('btnGithubSave');
+      if (btn) {
+        const githubSvg = `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="flex-shrink:0"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>`;
+        btn.innerHTML = cfConnected
+          ? `${githubSvg} GitHubへ保存 & Cloudflareデプロイ`
+          : `${githubSvg} GitHubへ保存して自動デプロイ`;
       }
     }
 
@@ -701,17 +803,19 @@
       modal.classList.add('open');
       document.getElementById('setupMsg').className = 'msg';
 
-      /* トークンが設定済みなら一部マスクして表示 */
-      const token = getToken();
+      /* トークンが設定済みなら表示 */
+      const token   = getToken();
+      const cfToken = getCFToken();
       if (token) {
-        document.getElementById('tokenInput').value = token;
+        document.getElementById('tokenInput').value   = token;
+        document.getElementById('cfTokenInput').value = cfToken;
         document.getElementById('clearTokenBtn').style.display = 'inline-flex';
         document.getElementById('setupModalClose').style.display = 'block';
         document.getElementById('setupCancelBtn').style.display = 'inline-flex';
       } else {
-        document.getElementById('tokenInput').value = '';
+        document.getElementById('tokenInput').value   = '';
+        document.getElementById('cfTokenInput').value = cfToken;
         document.getElementById('clearTokenBtn').style.display = 'none';
-        /* 初回セットアップ時はトークンなしなら閉じるボタンを状況に応じて表示 */
         document.getElementById('setupModalClose').style.display = hasToken() ? 'block' : 'none';
         document.getElementById('setupCancelBtn').style.display = hasToken() ? 'inline-flex' : 'none';
       }
@@ -1046,22 +1150,77 @@
     }
 
     /* ============================================================
+       Cloudflare Pages 直接デプロイ
+       ============================================================ */
+    async function deployToCloudflare(content) {
+      const cfToken = getCFToken();
+      if (!cfToken) throw new Error('CloudflareトークンがLocalStorageに設定されていません。');
+
+      /* SHA-256 ハッシュを Base64 で計算 */
+      const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(content));
+      const hash = btoa(String.fromCharCode(...new Uint8Array(hashBuffer)));
+
+      /* マニフェストを構築（ベース + work-data.js のハッシュ） */
+      const manifest = Object.assign({}, BASE_MANIFEST, { '/js/work-data.js': hash });
+      const manifestJSON = JSON.stringify(manifest);
+
+      /* FormData を構築 */
+      const formData = new FormData();
+      formData.append('manifest', manifestJSON);
+      formData.append(hash, new Blob([content], { type: 'text/javascript' }), 'work-data.js');
+
+      const res = await fetch(CF_API_URL, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${cfToken}` },
+        body: formData,
+      });
+
+      if (res.status === 401) {
+        throw new Error('Cloudflareトークンが無効または期限切れです。⚙ 設定ボタンからトークンを再設定してください。');
+      }
+      if (res.status === 403) {
+        throw new Error('Cloudflareへのアクセス権限がありません。トークンの権限を確認してください。');
+      }
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        const errMsg = (errJson.errors && errJson.errors[0]) ? errJson.errors[0].message : (errJson.message || '');
+        throw new Error(`Cloudflareへのデプロイに失敗しました（HTTP ${res.status}）。${errMsg}`);
+      }
+
+      return await res.json();
+    }
+
+    /* ============================================================
        GitHubへ保存ボタンのハンドラ
        ============================================================ */
     async function handleGithubSave() {
       const btn = document.getElementById('btnGithubSave');
+      const githubSvg = `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="flex-shrink:0"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>`;
+      const btnLabel = hasCFToken()
+        ? `${githubSvg} GitHubへ保存 & Cloudflareデプロイ`
+        : `${githubSvg} GitHubへ保存して自動デプロイ`;
+
       btn.disabled = true;
       btn.innerHTML = '<span class="spinner"></span> 保存中...';
       showGithubMsg('GitHubにコミットを送信しています...', 'info');
 
       try {
+        const content = generateWorkDataJs(data);
         await saveViaGitHubAPI(data);
-        showGithubMsg('✅ GitHubに保存しました。1〜2分でサイトに反映されます。', 'success');
+
+        if (hasCFToken()) {
+          showGithubMsg('✅ GitHubに保存しました。Cloudflareへデプロイ中...', 'info');
+          btn.innerHTML = '<span class="spinner"></span> Cloudflareへデプロイ中...';
+          await deployToCloudflare(content);
+          showGithubMsg('✅ サイトへの反映完了！（Cloudflare Pages にデプロイ済み）', 'success');
+        } else {
+          showGithubMsg('✅ GitHubに保存しました。1〜2分でサイトに反映されます。', 'success');
+        }
       } catch (err) {
         showGithubMsg(`❌ エラー: ${err.message}`, 'error');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" style="flex-shrink:0"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg> GitHubへ保存して自動デプロイ`;
+        btn.innerHTML = btnLabel;
       }
     }
 
